@@ -319,7 +319,6 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 - 🐛 **Reportar bugs**: [GitHub Issues](https://github.com/seu-usuario/save-ideas/issues)
 - 💡 **Sugerir features**: [GitHub Discussions](https://github.com/seu-usuario/save-ideas/discussions)
-- 📧 **Contato**: seu-email@exemplo.com
 
 ---
 
