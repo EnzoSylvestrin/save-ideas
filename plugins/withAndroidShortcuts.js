@@ -1,5 +1,4 @@
 const {
-  createRunOncePlugin,
   withAndroidManifest,
   withDangerousMod,
 } = require('@expo/config-plugins');
@@ -35,7 +34,6 @@ const withAndroidShortcuts = (config) => {
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="${packageName}"
-            android:targetClass="${packageName}.MainActivity"
             android:data="saveideas://quick-record" />
     </shortcut>
 </shortcuts>`;
@@ -102,9 +100,5 @@ const withAndroidShortcuts = (config) => {
   return config;
 };
 
-module.exports = createRunOncePlugin(
-  withAndroidShortcuts,
-  'withAndroidShortcuts',
-  '1.0.0'
-);
+module.exports = withAndroidShortcuts;
 
