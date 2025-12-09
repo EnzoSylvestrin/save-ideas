@@ -92,15 +92,24 @@ npm install
 
 3. **Configure as variáveis de ambiente**
 
-Crie um arquivo `.env` na raiz do projeto:
+Copie o arquivo de exemplo e preencha com suas credenciais:
 
-```env
-EXPO_PUBLIC_CONVEX_URL=sua_url_do_convex
-OPENAI_API_KEY=sua_chave_da_openai
-EAS_PROJECT_ID=seu_eas_project_id
+```bash
+cp .env.example .env
 ```
 
-> ⚠️ **Importante**: O arquivo `.env` já está no `.gitignore` e não será commitado. Nunca commite suas chaves de API!
+Edite o arquivo `.env` e adicione suas credenciais:
+
+```env
+EXPO_PUBLIC_CONVEX_URL=https://seu-projeto.convex.cloud
+OPENAI_API_KEY=sk-sua-chave-openai
+EAS_PROJECT_ID=seu-eas-project-id
+```
+
+> ⚠️ **Importante**: 
+> - O arquivo `.env` já está no `.gitignore` e não será commitado
+> - Nunca commite suas chaves de API!
+> - O projeto usa `app.config.js` (não `app.json`) para ler variáveis de ambiente de forma segura
 
 4. **Configure o Convex**
 
@@ -124,12 +133,12 @@ As funções do backend estão em `convex/`:
 - `projects.ts` - CRUD de projetos
 - `ideas.ts` - CRUD de ideias e processamento de áudio
 
-Certifique-se de configurar a variável de ambiente `OPENAI_API_KEY` no dashboard do Convex também.
+Certifique-se de configurar a variável de ambiente `OPENAI_API_KEY` no dashboard do Convex também:
 
-> 💡 **Dica**: Você pode copiar o arquivo `.env.example` para `.env` e preencher com suas credenciais:
-> ```bash
-> cp .env.example .env
-> ```
+1. Acesse o [Dashboard do Convex](https://dashboard.convex.dev)
+2. Selecione seu projeto
+3. Vá em **Settings** → **Environment Variables**
+4. Adicione `OPENAI_API_KEY` com sua chave da OpenAI
 
 6. **Inicie o app**
 
@@ -254,10 +263,15 @@ save-ideas/
 ├── plugins/               # Expo Config Plugins
 │   └── withAndroidShortcuts.js
 ├── scripts/               # Scripts e documentação
+│   ├── android-shortcuts-setup.md
+│   ├── setup-gemini-assistant.md
+│   └── setup-quick-access.md
 ├── utils/                 # Utilitários
 │   ├── storage.ts         # AsyncStorage helpers
 │   └── quick-access.ts    # Deep linking helpers
-└── app.json               # Configuração do Expo
+├── app.config.js          # Configuração do Expo (usa variáveis de ambiente)
+├── .env.example           # Exemplo de variáveis de ambiente
+└── .env                   # Suas variáveis de ambiente (não commitado)
 ```
 
 ---
@@ -266,7 +280,9 @@ save-ideas/
 
 ### Android App Shortcuts
 
-O app inclui um plugin customizado que configura automaticamente os App Shortcuts do Android. Veja mais em [`scripts/android-shortcuts-setup.md`](scripts/android-shortcuts-setup.md).
+O app inclui um plugin customizado (`plugins/withAndroidShortcuts.js`) que configura automaticamente os App Shortcuts do Android durante o build. Os atalhos aparecem quando você segura o ícone do app.
+
+Para mais detalhes, veja [`scripts/android-shortcuts-setup.md`](scripts/android-shortcuts-setup.md).
 
 ### Deep Linking
 
@@ -274,10 +290,26 @@ O app suporta deep linking para acesso rápido:
 
 - `saveideas://quick-record` - Abre a tela de gravação rápida
 - `saveideas://quick-record?projectId=xxx` - Abre gravação para projeto específico
+- `https://saveideas.app/quick-record` - Versão HTTPS (requer configuração de domínio)
+
+Para mais informações, veja [`scripts/setup-quick-access.md`](scripts/setup-quick-access.md).
 
 ### Integração com Assistente de Voz
 
-Para configurar comandos de voz com Google Assistant/Gemini, veja [`scripts/setup-gemini-assistant.md`](scripts/setup-gemini-assistant.md).
+Para configurar comandos de voz com Google Assistant/Gemini no Android, veja [`scripts/setup-gemini-assistant.md`](scripts/setup-gemini-assistant.md).
+
+### Variáveis de Ambiente
+
+O projeto usa `app.config.js` ao invés de `app.json` para permitir o uso de variáveis de ambiente de forma segura. Isso evita expor credenciais sensíveis no código.
+
+**Variáveis necessárias:**
+- `EXPO_PUBLIC_CONVEX_URL` - URL do seu projeto Convex
+- `OPENAI_API_KEY` - Chave da API da OpenAI (também precisa estar no Convex)
+
+**Variáveis opcionais:**
+- `EAS_PROJECT_ID` - ID do projeto EAS (para builds)
+
+> 💡 **Dica**: Sempre use `.env` para variáveis locais e configure as mesmas variáveis no dashboard do Convex para produção.
 
 ---
 
@@ -297,6 +329,8 @@ Contribuições são bem-vindas! Sinta-se à vontade para:
 - Adicione testes quando apropriado
 - Atualize a documentação se necessário
 - Use commits descritivos
+- **Nunca commite** arquivos `.env` ou `app.json` com credenciais
+- Use `app.config.js` para configurações que dependem de variáveis de ambiente
 
 ---
 
@@ -314,6 +348,20 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - Todos os contribuidores e usuários do projeto
 
 ---
+
+## 🔒 Segurança
+
+Este projeto foi configurado para ser seguro para código aberto:
+
+- ✅ Credenciais são gerenciadas via variáveis de ambiente
+- ✅ `app.config.js` lê variáveis de ambiente (não hardcoded)
+- ✅ `.env` e `app.json` estão no `.gitignore`
+- ✅ `.env.example` fornece template sem credenciais reais
+
+**Importante**: Se você for fazer fork ou contribuir, certifique-se de:
+1. Criar seu próprio `.env` baseado em `.env.example`
+2. Configurar suas próprias credenciais no Convex
+3. Nunca commitar arquivos com credenciais
 
 ## 📞 Suporte
 
