@@ -34,6 +34,7 @@ const withAndroidShortcuts = (config) => {
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="${packageName}"
+            android:targetClass="${packageName}.MainActivity"
             android:data="saveideas://quick-record" />
     </shortcut>
 </shortcuts>`;
@@ -58,14 +59,24 @@ const withAndroidShortcuts = (config) => {
         stringsContent = '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>';
       }
       
-      // Adiciona as strings se não existirem
+      // Adiciona ou atualiza as strings
       if (!stringsContent.includes('shortcut_quick_record_short')) {
         stringsContent = stringsContent.replace(
           '</resources>',
           '    <string name="shortcut_quick_record_short">Gravar Ideia</string>\n    <string name="shortcut_quick_record_long">Gravar Ideia Rápida</string>\n</resources>'
         );
-        fs.writeFileSync(stringsPath, stringsContent, 'utf8');
+      } else {
+        // Atualiza as strings se já existirem
+        stringsContent = stringsContent.replace(
+          /<string name="shortcut_quick_record_short">.*?<\/string>/,
+          '<string name="shortcut_quick_record_short">Gravar Ideia</string>'
+        );
+        stringsContent = stringsContent.replace(
+          /<string name="shortcut_quick_record_long">.*?<\/string>/,
+          '<string name="shortcut_quick_record_long">Gravar Ideia Rápida</string>'
+        );
       }
+      fs.writeFileSync(stringsPath, stringsContent, 'utf8');
       
       return config;
     },
