@@ -1,3 +1,7 @@
+import 'dotenv/config';
+
+const easProjectId = process.env.EAS_PROJECT_ID || '';
+
 export default {
   expo: {
     name: 'save-ideas',
@@ -77,7 +81,7 @@ export default {
       convexUrl: process.env.EXPO_PUBLIC_CONVEX_URL || '',
       router: {},
       eas: {
-        projectId: process.env.EAS_PROJECT_ID || '',
+        projectId: easProjectId,
       },
     },
   },
