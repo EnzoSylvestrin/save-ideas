@@ -1,7 +1,10 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { ConvexProvider, ConvexReactClient } from 'convex/react';
-import { Stack } from 'expo-router';
+import * as QuickActions from 'expo-quick-actions';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -21,6 +24,29 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
+
+  useEffect(() => {
+    QuickActions.setItems([
+      {
+        id: 'quick-record',
+        title: 'Gravar Ideia',
+        subtitle: 'Iniciar uma nova gravação',
+        icon: Platform.OS === 'ios' ? 'symbol:mic.fill' : 'mic',
+        params: { href: '/quick-record' },
+      },
+    ]);
+
+    const subscription = QuickActions.addListener((action) => {
+      if (action.id === 'quick-record') {
+        router.push('/quick-record');
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [router]);
 
   return (
     <SafeAreaProvider>

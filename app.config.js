@@ -71,7 +71,7 @@ export default {
         },
       ],
       'expo-audio',
-      './plugins/withAndroidShortcuts.js',
+      'expo-quick-actions',
     ],
     experiments: {
       typedRoutes: true,
