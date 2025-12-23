@@ -18,10 +18,6 @@ if (!convexUrl) {
 
 const convex = new ConvexReactClient(convexUrl);
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
@@ -53,10 +49,10 @@ export default function RootLayout() {
       <ConvexProvider client={convex}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="project-detail" options={{ headerShown: false, presentation: 'card' }} />
             <Stack.Screen name="quick-record" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
             <Stack.Screen name="idea-detail" options={{ headerShown: false, presentation: 'card' }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
           <StatusBar style="auto" />
         </ThemeProvider>

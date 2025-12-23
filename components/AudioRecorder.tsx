@@ -10,13 +10,22 @@ import {
   type RecordingStatus
 } from 'expo-audio';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { IconSymbol } from './ui/icon-symbol';
 
 interface AudioRecorderProps {
-  onRecordingComplete: (uri: string, base64: string, mimeType: string) => void;
+  onRecordingComplete: (uri: string, base64: string, mimeType: string, duration: number) => void;
   onError?: (error: string) => void;
 }
 
@@ -29,6 +38,11 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
   const [localIsRecording, setLocalIsRecording] = useState(false);
   const hasStartedRecordingRef = useRef(false);
   const isProcessingRef = useRef(false);
+  const recordingDurationRef = useRef(0);
+  
+  useEffect(() => {
+    recordingDurationRef.current = recordingDuration;
+  }, [recordingDuration]);
   
   const processRecording = useCallback(async (uri: string) => {
     // Prevent duplicate processing
@@ -47,9 +61,10 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
       reader.onloadend = () => {
         const base64 = reader.result as string;
         const base64Data = base64.split(',')[1];
-        console.log('Recording processed, calling onRecordingComplete');
+        const finalDuration = recordingDurationRef.current;
+        console.log('Recording processed, calling onRecordingComplete with duration:', finalDuration);
         isProcessingRef.current = false;
-        onRecordingComplete(uri, base64Data, blob.type);
+        onRecordingComplete(uri, base64Data, blob.type, finalDuration);
       };
       
       reader.onerror = (error) => {
@@ -67,20 +82,29 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
   }, [onRecordingComplete, onError]);
   
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY, (status: RecordingStatus) => {
-    console.log('Status listener called:', status, 'hasStartedRecording:', hasStartedRecordingRef.current);
+    // Get current status from recorder to access durationMillis
+    const currentStatus = recorder?.getStatus();
+    console.log('Status listener called:', status, 'hasStartedRecording:', hasStartedRecordingRef.current, 'duration:', recordingDuration, 'durationMillis:', currentStatus?.durationMillis);
     // Handle finished recording with URL - only if we actually started recording
     if (hasStartedRecordingRef.current && status.isFinished && status.url) {
       const currentProcessedId = processedRecordingId;
       if (status.url !== currentProcessedId && !isProcessingRef.current) {
-        console.log('Recording finished with URL (status listener):', status.url);
+        // Capture duration from recorder status FIRST (most reliable), then ref, then state
+        const finalDuration = currentStatus?.durationMillis 
+          ? Math.floor(currentStatus.durationMillis / 1000)
+          : (recordingDurationRef.current || recordingDuration);
+        console.log('Recording finished with URL (status listener):', status.url, 'final duration:', finalDuration, 'from status:', currentStatus?.durationMillis);
+        // Update ref BEFORE any state changes to preserve duration
+        recordingDurationRef.current = finalDuration;
         setProcessedRecordingId(status.url);
-        setLocalIsRecording(false);
-        hasStartedRecordingRef.current = false; // Reset flag
+        hasStartedRecordingRef.current = false;
+        // Don't reset localIsRecording here - it causes duration to reset to 0
+        // The stopRecording function will handle state reset
         processRecording(status.url);
       }
     } else if (hasStartedRecordingRef.current && status.isFinished && !status.url) {
       console.warn('Recording finished but URL is null. Status:', status);
-      hasStartedRecordingRef.current = false; // Reset flag even if no URL
+      hasStartedRecordingRef.current = false;
     }
   });
   
@@ -112,13 +136,18 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
     if (hasStartedRecordingRef.current && !localIsRecording && !recorderState.isRecording && recorderState.url) {
       // Recording just finished and URL is available
       if (recorderState.url !== processedRecordingId && !isProcessingRef.current) {
-        console.log('URL available in recorderState (useEffect fallback):', recorderState.url);
+        // Use duration from recorderState if available, otherwise use ref
+        const finalDuration = recorderState.durationMillis 
+          ? Math.floor(recorderState.durationMillis / 1000)
+          : recordingDurationRef.current;
+        console.log('URL available in recorderState (useEffect fallback):', recorderState.url, 'duration:', finalDuration, 'durationMillis:', recorderState.durationMillis);
         setProcessedRecordingId(recorderState.url);
-        hasStartedRecordingRef.current = false; // Reset flag
+        hasStartedRecordingRef.current = false;
+        recordingDurationRef.current = finalDuration;
         processRecording(recorderState.url);
       }
     }
-  }, [recorderState.url, recorderState.isRecording, localIsRecording, processedRecordingId, processRecording]);
+  }, [recorderState.url, recorderState.isRecording, recorderState.durationMillis, localIsRecording, processedRecordingId, processRecording]);
   
   // Debug logs
   useEffect(() => {
@@ -168,22 +197,39 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
   useEffect(() => {
     if (isRecording) {
       if (recorderState.durationMillis) {
-        setRecordingDuration(Math.floor(recorderState.durationMillis / 1000));
+        const durationSeconds = Math.floor(recorderState.durationMillis / 1000);
+        setRecordingDuration(durationSeconds);
+        // Also update ref to keep it in sync
+        recordingDurationRef.current = durationSeconds;
       } else {
         // If recording but no duration yet, start counting manually
         const interval = setInterval(() => {
-          setRecordingDuration((prev) => prev + 1);
+          setRecordingDuration((prev) => {
+            const newDuration = prev + 1;
+            recordingDurationRef.current = newDuration;
+            return newDuration;
+          });
         }, 1000);
         return () => clearInterval(interval);
       }
     } else {
-      setRecordingDuration(0);
+      // Only reset if we're not processing
+      if (!isProcessingRef.current) {
+        setRecordingDuration(0);
+      }
     }
   }, [isRecording, recorderState.durationMillis]);
 
 
   const startRecording = async () => {
-    console.log('Starting recording - hasPermission:', hasPermission);
+    console.log('Starting recording - hasPermission:', hasPermission, 'recorder:', !!recorder);
+    
+    if (!recorder) {
+      console.error('Recorder not initialized');
+      onError?.('Gravador não inicializado. Tente novamente.');
+      return;
+    }
+    
     try {
       if (!hasPermission) {
         const permissionResponse = await getRecordingPermissionsAsync();
@@ -205,17 +251,47 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
         playsInSilentMode: true,
       });
 
-      // Prepare recorder if not already ready
+      // Check recorder status before preparing
+      const currentStatus = recorder.getStatus();
+      console.log('Current recorder status:', currentStatus);
+      
+      // If recorder is already recording, stop it first
+      if (currentStatus.isRecording) {
+        console.log('Recorder is already recording, stopping first...');
+        try {
+          await recorder.stop();
+          await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (error) {
+          console.error('Error stopping existing recording:', error);
+        }
+      }
+      
+      // Only prepare if not already prepared or if canRecord is false
       if (!recorderState.canRecord) {
         console.log('Preparing recorder...');
         try {
-          await recorder.prepareToRecordAsync();
-          console.log('Recorder prepared');
-          // Wait a bit for state to update
-          await new Promise(resolve => setTimeout(resolve, 100));
-        } catch (error) {
-          console.error('Error preparing recorder:', error);
+          // Check status again before preparing
+          const statusBeforePrepare = recorder.getStatus();
+          if (!statusBeforePrepare.isRecording && !statusBeforePrepare.canRecord) {
+            await recorder.prepareToRecordAsync();
+            console.log('Recorder prepared');
+            // Wait a bit for state to update
+            await new Promise(resolve => setTimeout(resolve, 200));
+          } else {
+            console.log('Recorder already prepared, skipping prepare');
+          }
+        } catch (error: any) {
+          // If error is about already being prepared, that's okay
+          if (error?.message?.includes('already been prepared')) {
+            console.log('Recorder already prepared, continuing...');
+          } else {
+            console.error('Error preparing recorder:', error);
+            onError?.('Erro ao preparar gravador. Tente novamente.');
+            return;
+          }
         }
+      } else {
+        console.log('Recorder already ready, skipping prepare');
       }
 
       console.log('Calling recorder.record()...');
@@ -229,7 +305,7 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
       try {
         recorder.record();
         setLocalIsRecording(true);
-        hasStartedRecordingRef.current = true; // Mark that we've started recording
+        hasStartedRecordingRef.current = true;
         console.log('recorder.record() called, localIsRecording set to true');
         
         // Wait and verify recording started
@@ -241,31 +317,49 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
             durationMillis: currentState.durationMillis,
           });
           
-          if (!currentState.isRecording && !recorderState.isRecording) {
+          if (!currentState.isRecording && !recorderState.isRecording && localIsRecording) {
             console.warn('Recording did not start, trying again...');
-            // Try once more
+            setLocalIsRecording(false);
             recorder.record();
+            setLocalIsRecording(true);
           }
-        }, 300);
+        }, 500);
       } catch (error) {
         console.error('Error calling record():', error);
+        setLocalIsRecording(false);
         onError?.('Erro ao iniciar gravação');
       }
     } catch (error) {
       console.error('Error starting recording:', error);
+      setLocalIsRecording(false);
       onError?.('Erro ao iniciar gravação. Verifique se o microfone está disponível.');
     }
   };
 
   const stopRecording = async () => {
-    console.log('Stopping recording');
+    console.log('Stopping recording, current duration:', recordingDuration, 'recorderState duration:', recorderState.durationMillis);
     if (!recorder) return;
     
-    setLocalIsRecording(false);
+    // Capture duration from recorderState if available, otherwise use local state
+    // Get the status directly from recorder to get most accurate duration
+    const currentStatus = recorder.getStatus();
+    const finalDuration = currentStatus.durationMillis 
+      ? Math.floor(currentStatus.durationMillis / 1000)
+      : (recorderState.durationMillis 
+          ? Math.floor(recorderState.durationMillis / 1000)
+          : recordingDuration);
+    
+    console.log('Final duration captured:', finalDuration, 'from status:', currentStatus.durationMillis);
+    
+    // Update ref IMMEDIATELY before any state changes
+    recordingDurationRef.current = finalDuration;
+    
+    // Don't reset localIsRecording yet - wait until after processing
+    // This prevents the useEffect from resetting recordingDuration to 0
 
     try {
       await recorder.stop();
-      console.log('recorder.stop() called');
+      console.log('recorder.stop() called, final duration in ref:', recordingDurationRef.current);
       
       // Check recorder.uri directly first
       const directUri = recorder.uri;
@@ -274,7 +368,10 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
       if (directUri) {
         if (directUri !== processedRecordingId) {
           setProcessedRecordingId(directUri);
+          // Process with the duration we captured
           await processRecording(directUri);
+          // Only reset after processing starts
+          setLocalIsRecording(false);
           return;
         }
       }
@@ -287,8 +384,14 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
           onError?.('Não foi possível obter o arquivo de gravação. Tente gravar novamente.');
         }
       }, 1000);
+      
+      // Reset after a delay to ensure processing has started
+      setTimeout(() => {
+        setLocalIsRecording(false);
+      }, 100);
     } catch (error) {
       console.error('Error stopping recording:', error);
+      setLocalIsRecording(false);
       onError?.('Erro ao parar gravação');
     }
   };
@@ -299,14 +402,128 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const buttonScale = useSharedValue(1);
+  const pulseScale1 = useSharedValue(0);
+  const pulseScale2 = useSharedValue(0);
+  const pulseOpacity1 = useSharedValue(0);
+  const pulseOpacity2 = useSharedValue(0);
+  const waveformScale = useSharedValue(0);
+
+  useEffect(() => {
+    if (isRecording) {
+      buttonScale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
+      pulseScale1.value = withRepeat(
+        withTiming(1.8, { duration: 2000, easing: Easing.out(Easing.ease) }),
+        -1,
+        false
+      );
+      const timeoutId = setTimeout(() => {
+        pulseScale2.value = withRepeat(
+          withTiming(1.8, { duration: 2000, easing: Easing.out(Easing.ease) }),
+          -1,
+          false
+        );
+        pulseOpacity2.value = withRepeat(
+          withTiming(0, { duration: 2000, easing: Easing.out(Easing.ease) }),
+          -1,
+          false
+        );
+      }, 1000);
+      pulseOpacity1.value = withRepeat(
+        withTiming(0, { duration: 2000, easing: Easing.out(Easing.ease) }),
+        -1,
+        false
+      );
+      waveformScale.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.ease) });
+      
+      return () => clearTimeout(timeoutId);
+    } else {
+      buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
+      pulseScale1.value = withTiming(0, { duration: 200 });
+      pulseScale2.value = withTiming(0, { duration: 200 });
+      pulseOpacity1.value = withTiming(0, { duration: 200 });
+      pulseOpacity2.value = withTiming(0, { duration: 200 });
+      waveformScale.value = withTiming(0, { duration: 200 });
+    }
+  }, [isRecording, buttonScale, pulseScale1, pulseScale2, pulseOpacity1, pulseOpacity2, waveformScale]);
+
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }));
+
+  const pulse1AnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale1.value }],
+    opacity: pulseOpacity1.value,
+  }));
+
+  const pulse2AnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale2.value }],
+    opacity: pulseOpacity2.value,
+  }));
+
+  const waveformAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: waveformScale.value,
+    transform: [{ scaleY: interpolate(waveformScale.value, [0, 1], [0.3, 1]) }],
+  }));
+
+  const WaveformBar = ({ index, isActive }: { index: number; isActive: boolean }) => {
+    const barScale = useSharedValue(0.3);
+    const animationSpeed = useRef(300 + (index % 5) * 100);
+    const delay = useRef((index % 7) * 50);
+    
+    useEffect(() => {
+      if (isActive) {
+        const maxHeight = 0.4 + (index % 4) * 0.15;
+        
+        const startAnimation = () => {
+          barScale.value = withRepeat(
+            withTiming(maxHeight, {
+              duration: animationSpeed.current,
+              easing: Easing.inOut(Easing.ease),
+            }),
+            -1,
+            true
+          );
+        };
+        
+        if (delay.current > 0) {
+          setTimeout(startAnimation, delay.current);
+        } else {
+          startAnimation();
+        }
+      } else {
+        barScale.value = withTiming(0.3, { duration: 200 });
+      }
+    }, [isActive, index, barScale]);
+
+    const barStyle = useAnimatedStyle(() => {
+      const scale = Math.max(0.3, Math.min(1, barScale.value));
+      return {
+        transform: [{ scaleY: scale }],
+      };
+    });
+
+    return (
+      <Animated.View
+        style={[
+          styles.waveformBar,
+          { backgroundColor: themeColors.tint },
+          barStyle,
+        ]}
+      />
+    );
+  };
+
   if (hasPermission === null) {
     return (
       <ThemedView 
         lightColor="transparent"
         darkColor="transparent"
         style={styles.container}>
-        <ActivityIndicator />
-        <ThemedText>Solicitando permissões...</ThemedText>
+        <ActivityIndicator size="large" color={themeColors.tint} />
+        <ThemedText style={[styles.loadingText, { color: themeColors.muted }]}>
+          Solicitando permissões...
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -317,7 +534,10 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
         lightColor="transparent"
         darkColor="transparent"
         style={styles.container}>
-        <ThemedText>Permissão de gravação necessária</ThemedText>
+        <IconSymbol name="mic.slash.fill" size={48} color={themeColors.muted} />
+        <ThemedText style={[styles.errorText, { color: themeColors.text }]}>
+          Permissão de gravação necessária
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -327,52 +547,72 @@ export function AudioRecorder({ onRecordingComplete, onError }: AudioRecorderPro
       lightColor="transparent"
       darkColor="transparent"
       style={styles.container}>
-      <ThemedView 
-        lightColor="transparent"
-        darkColor="transparent"
-        style={[styles.recordButtonContainer, isRecording && styles.recordingContainer]}>
-        <TouchableOpacity
+      <View style={styles.recordButtonWrapper}>
+        <Animated.View
           style={[
-            styles.recordButton,
-            isRecording && styles.recordButtonActive,
-            { 
-              backgroundColor: isRecording ? '#ef4444' : themeColors.tint,
-              shadowColor: isRecording ? '#ef4444' : themeColors.tint,
-            }
+            styles.pulseRing,
+            {
+              borderColor: themeColors.tint,
+            },
+            pulse1AnimatedStyle,
           ]}
-          onPress={isRecording ? stopRecording : startRecording}
-          activeOpacity={0.85}
-        >
-          <IconSymbol
-            name={isRecording ? 'stop.fill' : 'mic.fill'}
-            size={28}
-            color="#fff"
-          />
-        </TouchableOpacity>
-        {isRecording && (
-          <ThemedView 
-            lightColor="transparent"
-            darkColor="transparent"
-            style={[styles.pulseRing, { borderColor: themeColors.tint }]} />
-        )}
-      </ThemedView>
+          pointerEvents="none"
+        />
+        <Animated.View
+          style={[
+            styles.pulseRing,
+            {
+              borderColor: themeColors.tint,
+            },
+            pulse2AnimatedStyle,
+          ]}
+          pointerEvents="none"
+        />
+        <Animated.View style={buttonAnimatedStyle} pointerEvents="box-none">
+          <TouchableOpacity
+            style={[
+              styles.recordButton,
+              {
+                backgroundColor: isRecording ? '#ef4444' : themeColors.tint,
+                shadowColor: isRecording ? '#ef4444' : themeColors.tint,
+              },
+            ]}
+            onPress={isRecording ? stopRecording : startRecording}
+            activeOpacity={0.9}
+          >
+            <IconSymbol
+              name={isRecording ? 'stop.fill' : 'mic.fill'}
+              size={isRecording ? 32 : 36}
+              color="#fff"
+            />
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+
       {isRecording && (
-        <ThemedView 
-          lightColor="transparent"
-          darkColor="transparent"
-          style={styles.durationContainer}>
-          <ThemedText style={[styles.duration, { color: themeColors.text }]}>
+        <Animated.View style={[styles.waveformContainer, waveformAnimatedStyle]}>
+          {[...Array(20)].map((_, i) => (
+            <WaveformBar key={i} index={i} isActive={isRecording} />
+          ))}
+        </Animated.View>
+      )}
+
+      {isRecording && (
+        <View style={styles.durationContainer}>
+          <View style={[styles.recordingIndicator, { backgroundColor: '#ef4444' }]} />
+          <ThemedText style={[styles.duration, { color: themeColors.text }]} numberOfLines={1} allowFontScaling={false}>
             {formatTime(recordingDuration)}
           </ThemedText>
-          <ThemedView style={[styles.recordingIndicator, { backgroundColor: '#ef4444' }]} />
-        </ThemedView>
+        </View>
       )}
+
       <ThemedText style={[styles.label, { color: themeColors.text }]}>
-        {isRecording ? 'Gravando... Toque para parar' : 'Toque para gravar sua ideia'}
+        {isRecording ? 'Gravando...' : 'Toque para gravar'}
       </ThemedText>
+      
       {!isRecording && (
         <ThemedText style={[styles.hint, { color: themeColors.muted }]}>
-          Sua voz será transcrita e processada automaticamente
+          Sua voz será transcrita automaticamente
         </ThemedText>
       )}
     </ThemedView>
@@ -383,74 +623,101 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 32,
-    gap: 20,
-    minHeight: 320,
+    paddingVertical: 40,
+    gap: 24,
+    minHeight: 400,
+    width: '100%',
   },
-  recordButtonContainer: {
+  recordButtonWrapper: {
+    width: 180,
+    height: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recordingContainer: {
-    width: 140,
-    height: 140,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   recordButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 8,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    zIndex: 2,
-  },
-  recordButtonActive: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    zIndex: 10,
   },
   pulseRing: {
     position: 'absolute',
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 3,
-    opacity: 0.3,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    zIndex: 1,
+  },
+  waveformContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 60,
+    gap: 4,
+    paddingHorizontal: 20,
+    marginTop: 8,
+  },
+  waveformBar: {
+    width: 4,
+    borderRadius: 2,
+    minHeight: 8,
+    maxHeight: 50,
   },
   durationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 12,
-    marginTop: 8,
+    marginTop: 4,
+    paddingHorizontal: 20,
+    minWidth: 150,
+    height: 60,
   },
   duration: {
-    fontSize: 36,
+    fontSize: 42,
     fontWeight: '800',
-    letterSpacing: -1,
+    letterSpacing: -1.5,
+    fontVariant: ['tabular-nums'],
+    textAlign: 'center',
+    minWidth: 120,
+    includeFontPadding: false,
+    lineHeight: 50,
+    paddingVertical: 4,
   },
   recordingIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
   },
   label: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
     marginTop: 8,
   },
   hint: {
-    fontSize: 13,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 4,
+    paddingHorizontal: 40,
+    lineHeight: 20,
+  },
+  loadingText: {
+    fontSize: 15,
+    marginTop: 12,
+  },
+  errorText: {
+    fontSize: 16,
+    marginTop: 16,
+    textAlign: 'center',
     paddingHorizontal: 32,
-    lineHeight: 18,
   },
 });
 

@@ -1,8 +1,6 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { IconSymbol } from './ui/icon-symbol';
 
 interface ProjectCardProps {
@@ -10,9 +8,10 @@ interface ProjectCardProps {
   title: string;
   createdAt: number;
   onPress: () => void;
+  onLongPress?: () => void;
 }
 
-export function ProjectCard({ title, createdAt, onPress }: ProjectCardProps) {
+export function ProjectCard({ title, createdAt, onPress, onLongPress }: ProjectCardProps) {
   const colorScheme = useColorScheme();
   const themeColors = Colors[colorScheme ?? 'light'];
   const formatDate = (timestamp: number) => {
@@ -26,28 +25,27 @@ export function ProjectCard({ title, createdAt, onPress }: ProjectCardProps) {
 
   return (
     <TouchableOpacity 
-      onPress={onPress} 
-      style={[styles.card, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}
-      activeOpacity={0.7}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={[styles.card, { backgroundColor: themeColors.cardBackground }]}
+      activeOpacity={0.6}
     >
-      <ThemedView style={styles.cardContent}>
-        <ThemedView style={styles.header}>
-          <ThemedView style={styles.titleContainer}>
-            <ThemedView style={[styles.iconContainer, { backgroundColor: themeColors.tint + '15' }]}>
-              <IconSymbol name="paperplane.fill" size={18} color={themeColors.tint} />
-            </ThemedView>
-            <ThemedView style={styles.textContainer}>
-              <ThemedText type="subtitle" style={[styles.title, { color: themeColors.text }]}>
-                {title}
-              </ThemedText>
-              <ThemedText style={[styles.date, { color: themeColors.muted }]}>
-                {formatDate(createdAt)}
-              </ThemedText>
-            </ThemedView>
-          </ThemedView>
-          <IconSymbol name="chevron.right" size={22} color={themeColors.icon} />
-        </ThemedView>
-      </ThemedView>
+      <View style={styles.header}>
+        <View style={styles.titleContainer}>
+          <View style={[styles.iconContainer, { backgroundColor: themeColors.tint + '15' }]}>
+            <IconSymbol name="paperplane.fill" size={18} color={themeColors.tint} />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: themeColors.text }]}>
+              {title}
+            </Text>
+            <Text style={[styles.date, { color: themeColors.muted }]}>
+              {formatDate(createdAt)}
+            </Text>
+          </View>
+        </View>
+        <IconSymbol name="chevron.right" size={22} color={themeColors.icon} />
+      </View>
     </TouchableOpacity>
   );
 }
@@ -56,16 +54,13 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 16,
     borderRadius: 20,
-    borderWidth: 1.5,
-    elevation: 2,
+    padding: 20,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-  },
-  cardContent: {
-    padding: 20,
-    borderRadius: 20,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',

@@ -18,7 +18,7 @@ export default function IdeaDetailScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const themeColors = Colors[colorScheme ?? 'light'];
-  
+
   const idea = useQuery(
     api.ideas.getIdea,
     ideaId ? { ideaId: ideaId as Id<'ideas'> } : 'skip'
@@ -39,14 +39,14 @@ export default function IdeaDetailScreen() {
     const lines = text.split('\n');
     const elements: React.ReactNode[] = [];
     let currentList: string[] = [];
-    
+
     const formatBoldText = (text: string): React.ReactNode[] => {
       const boldRegex = /\*\*([^*]+)\*\*/g;
       const parts: React.ReactNode[] = [];
       let lastIndex = 0;
       let match;
       let partIndex = 0;
-      
+
       while ((match = boldRegex.exec(text)) !== null) {
         // Add text before the bold section
         if (match.index > lastIndex) {
@@ -63,7 +63,7 @@ export default function IdeaDetailScreen() {
         );
         lastIndex = match.index + match[0].length;
       }
-      
+
       // Add remaining text after last bold section
       if (lastIndex < text.length) {
         const afterText = text.substring(lastIndex);
@@ -71,26 +71,26 @@ export default function IdeaDetailScreen() {
           parts.push(afterText);
         }
       }
-      
+
       // If no bold text found, just return the whole text
       if (parts.length === 0) {
         parts.push(text);
       }
-      
+
       return parts;
     };
 
     const flushList = () => {
       if (currentList.length > 0) {
         elements.push(
-          <ThemedView 
-            key={`list-${elements.length}`} 
+          <ThemedView
+            key={`list-${elements.length}`}
             lightColor="transparent"
             darkColor="transparent"
             style={styles.listContainer}>
             {currentList.map((item, idx) => (
-              <ThemedView 
-                key={idx} 
+              <ThemedView
+                key={idx}
                 lightColor="transparent"
                 darkColor="transparent"
                 style={styles.listItem}>
@@ -108,12 +108,12 @@ export default function IdeaDetailScreen() {
 
     lines.forEach((line, index) => {
       const trimmed = line.trim();
-      
+
       if (trimmed.startsWith('## ')) {
         flushList();
         elements.push(
-          <ThemedView 
-            key={index} 
+          <ThemedView
+            key={index}
             lightColor="transparent"
             darkColor="transparent"
             style={styles.sectionDivider}>
@@ -137,11 +137,11 @@ export default function IdeaDetailScreen() {
       } else if (trimmed === '') {
         flushList();
         elements.push(
-          <ThemedView 
-            key={index} 
+          <ThemedView
+            key={index}
             lightColor="transparent"
             darkColor="transparent"
-            style={styles.spacer} 
+            style={styles.spacer}
           />
         );
       } else if (trimmed.length > 0) {
@@ -154,7 +154,7 @@ export default function IdeaDetailScreen() {
         );
       }
     });
-    
+
     flushList();
     return elements;
   };
@@ -184,7 +184,7 @@ export default function IdeaDetailScreen() {
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom }]}>
       <ThemedView style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => router.back()}
           style={[styles.backButton, { backgroundColor: themeColors.cardBackground }]}
           activeOpacity={0.7}
@@ -197,19 +197,19 @@ export default function IdeaDetailScreen() {
         <ThemedView style={{ width: 40 }} />
       </ThemedView>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <ThemedView 
+        <ThemedView
           lightColor={themeColors.cardBackground}
           darkColor={themeColors.cardBackground}
           style={[styles.titleCard, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
           <ThemedText style={[styles.title, { color: themeColors.text }]}>
             {idea.title || idea.transcribedText?.substring(0, 80) || 'Ideia sem título'}
           </ThemedText>
-          <ThemedView 
+          <ThemedView
             lightColor="transparent"
             darkColor="transparent"
             style={styles.dateBadge}>
@@ -220,11 +220,11 @@ export default function IdeaDetailScreen() {
         </ThemedView>
 
         {idea.transcribedText && (
-          <ThemedView 
+          <ThemedView
             lightColor={themeColors.cardBackground}
             darkColor={themeColors.cardBackground}
             style={[styles.section, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-            <ThemedView 
+            <ThemedView
               lightColor="transparent"
               darkColor="transparent"
               style={styles.sectionHeader}>
@@ -239,11 +239,11 @@ export default function IdeaDetailScreen() {
           </ThemedView>
         )}
 
-        <ThemedView 
+        <ThemedView
           lightColor={themeColors.cardBackground}
           darkColor={themeColors.cardBackground}
           style={[styles.section, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.border }]}>
-          <ThemedView 
+          <ThemedView
             lightColor="transparent"
             darkColor="transparent"
             style={styles.sectionHeader}>
@@ -252,7 +252,7 @@ export default function IdeaDetailScreen() {
               Ideias Estruturadas
             </ThemedText>
           </ThemedView>
-          <ThemedView 
+          <ThemedView
             lightColor="transparent"
             darkColor="transparent"
             style={styles.markdownContainer}>

@@ -1,4 +1,4 @@
-import { AudioRecorder } from '@/components/AudioRecorder';
+import { RecordingModal } from '@/components/RecordingModal';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -25,6 +25,7 @@ export default function QuickRecordScreen() {
   const [targetProjectTitle, setTargetProjectTitle] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showProjectSelector, setShowProjectSelector] = useState(false);
+  const [showRecordingModal, setShowRecordingModal] = useState(true);
 
   useEffect(() => {
     const setupProject = async () => {
@@ -36,7 +37,7 @@ export default function QuickRecordScreen() {
       // Só mostrar erro se realmente não houver projetos após carregar
       if (projects.length === 0) {
         Alert.alert('Atenção', 'Crie um projeto primeiro para gravar ideias', [
-          { text: 'OK', onPress: () => router.replace('/(tabs)') },
+          { text: 'OK', onPress: () => router.replace('/') },
         ]);
         return;
       }
@@ -76,7 +77,7 @@ export default function QuickRecordScreen() {
     setShowProjectSelector(false);
   };
 
-  const handleAudioComplete = async (uri: string, base64: string, mimeType: string) => {
+  const handleRecordingConfirm = async (uri: string, base64: string, mimeType: string, duration: number) => {
     if (!targetProjectId) return;
 
     setIsProcessing(true);
@@ -88,7 +89,7 @@ export default function QuickRecordScreen() {
         audioMimeType: mimeType,
       });
       Alert.alert('Sucesso', 'Ideia salva com sucesso!', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)') },
+        { text: 'OK', onPress: () => router.back() },
       ]);
     } catch {
       Alert.alert('Erro', 'Não foi possível salvar a ideia. Tente novamente.');
@@ -150,10 +151,17 @@ export default function QuickRecordScreen() {
           </ThemedText>
         </ThemedView>
       ) : (
-        <AudioRecorder
-          onRecordingComplete={handleAudioComplete}
-          onError={(error) => Alert.alert('Erro', error)}
-        />
+        targetProjectId && (
+          <RecordingModal
+            visible={showRecordingModal}
+            onClose={() => {
+              setShowRecordingModal(false);
+              router.back();
+            }}
+            onConfirm={handleRecordingConfirm}
+            projectTitle={targetProjectTitle}
+          />
+        )
       )}
 
       {showProjectSelector && projects && (

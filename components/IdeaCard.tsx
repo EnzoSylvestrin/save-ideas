@@ -39,7 +39,7 @@ export function IdeaCard({ id, title, transcribedText, createdAt, onPress }: Ide
       activeOpacity={0.7}
     >
       <ThemedView style={styles.cardContent}>
-        <ThemedView style={styles.header}>
+        <ThemedView style={styles.topRow}>
           <ThemedView style={[styles.dateBadge, { backgroundColor: themeColors.background }]}>
             <ThemedText style={[styles.date, { color: themeColors.muted }]}>
               {formatDate(createdAt)}
@@ -52,8 +52,8 @@ export function IdeaCard({ id, title, transcribedText, createdAt, onPress }: Ide
           {title || getPreview(transcribedText, 60) || 'Ideia sem título'}
         </ThemedText>
         
-        {transcribedText && (
-          <ThemedText style={[styles.preview, { color: themeColors.text }]}>
+        {transcribedText && title && (
+          <ThemedText style={[styles.preview, { color: themeColors.muted }]}>
             {getPreview(transcribedText)}
           </ThemedText>
         )}
@@ -75,16 +75,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardContent: {
-    padding: 20,
+    padding: 16,
   },
-  header: {
+  topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   dateBadge: {
-    paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
   },
@@ -92,18 +91,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
     lineHeight: 24,
-    marginBottom: 10,
+    marginBottom: 6,
     letterSpacing: -0.3,
   },
   preview: {
     fontSize: 15,
     lineHeight: 22,
-    opacity: 0.8,
     letterSpacing: 0.1,
   },
 });

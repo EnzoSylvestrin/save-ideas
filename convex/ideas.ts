@@ -79,6 +79,15 @@ export const processAudioIdea = action({
 
       const transcribedText = transcription.text;
 
+      // Get project details for context
+      const project = await ctx.runQuery(api.projects.getProject, {
+        projectId: args.projectId,
+      });
+
+      const projectContext = project
+        ? `\n\nContexto do Projeto:\nNome: ${project.title}${project.description ? `\nDescrição: ${project.description}` : ""}`
+        : "";
+
       // Generate title from transcription
       const titleCompletion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -86,11 +95,11 @@ export const processAudioIdea = action({
           {
             role: "system",
             content:
-              "Você é um assistente que cria títulos concisos e descritivos. Crie um título curto (máximo 60 caracteres) que resuma a ideia principal do texto transcrito.",
+              "Você é um assistente que cria títulos concisos e descritivos. Crie um título curto (máximo 60 caracteres) que resuma a ideia principal do texto transcrito, considerando o contexto do projeto quando fornecido.",
           },
           {
             role: "user",
-            content: `Crie um título curto para esta ideia: ${transcribedText}`,
+            content: `Crie um título curto para esta ideia: ${transcribedText}${projectContext}`,
           },
         ],
         temperature: 0.7,
@@ -106,11 +115,11 @@ export const processAudioIdea = action({
           {
             role: "system",
             content:
-              "Você é um assistente que ajuda a estruturar ideias de projetos. Analise o texto transcrito e gere uma ideia estruturada e clara em formato markdown, com seções como: ## Objetivo, ## Pontos Principais, ## Implementação, etc. Use formatação markdown para destacar títulos e listas.",
+              "Você é um assistente que ajuda a estruturar ideias de projetos. Analise o texto transcrito e gere uma ideia estruturada e clara em formato markdown, com seções como: ## Objetivo, ## Pontos Principais, ## Implementação, etc. Use formatação markdown para destacar títulos e listas. Considere o contexto do projeto fornecido para melhorar a estruturação e relevância da ideia.",
           },
           {
             role: "user",
-            content: `Processe e estruture a seguinte ideia em formato markdown: ${transcribedText}`,
+            content: `Processe e estruture a seguinte ideia em formato markdown: ${transcribedText}${projectContext}`,
           },
         ],
         temperature: 0.7,
