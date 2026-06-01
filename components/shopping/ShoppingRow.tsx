@@ -1,6 +1,7 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 
 export function ShoppingRow({
   name,
@@ -10,6 +11,7 @@ export function ShoppingRow({
   onLongPress,
   onDecrement,
   onIncrement,
+  onDelete,
 }: {
   name: string;
   checked: boolean;
@@ -18,10 +20,12 @@ export function ShoppingRow({
   onLongPress: () => void;
   onDecrement?: () => void;
   onIncrement?: () => void;
+  onDelete?: () => void;
 }) {
   const c = Colors[useColorScheme() ?? 'light'];
   const hasStepper = !!onDecrement && !!onIncrement;
-  return (
+
+  const content = (
     <View style={[styles.row, { backgroundColor: c.cardBackground }]}>
       <TouchableOpacity
         activeOpacity={0.7}
@@ -69,6 +73,21 @@ export function ShoppingRow({
       ) : null}
     </View>
   );
+
+  if (!onDelete) return content;
+
+  return (
+    <Swipeable
+      renderRightActions={() => (
+        <TouchableOpacity activeOpacity={0.8} onPress={onDelete} style={styles.deleteAction}>
+          <Text style={styles.deleteText}>Remover</Text>
+        </TouchableOpacity>
+      )}
+      overshootRight={false}
+    >
+      {content}
+    </Swipeable>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -82,4 +101,6 @@ const styles = StyleSheet.create({
   stepSign: { fontSize: 18, fontWeight: '700' },
   qty: { minWidth: 22, textAlign: 'center', fontSize: 15, fontWeight: '800' },
   qtyStatic: { fontSize: 14, fontWeight: '700', marginLeft: 10 },
+  deleteAction: { backgroundColor: '#ef4444', justifyContent: 'center', alignItems: 'center', width: 96, borderRadius: 14, marginBottom: 10 },
+  deleteText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 });

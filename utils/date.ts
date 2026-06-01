@@ -12,3 +12,11 @@ export function formatDayLabel(day: string): string {
   const date = new Date(y, m - 1, d);
   return date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
 }
+
+/** timestamp -> "seg, 01 jun · 15:30" (pt-BR). */
+export function formatArchivedLabel(ts: number): string {
+  const date = new Date(ts);
+  const d = date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+  const t = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return `${d} · ${t}`;
+}

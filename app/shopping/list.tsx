@@ -4,50 +4,39 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { formatDayLabel, todayStr } from '@/utils/date';
+import { formatArchivedLabel } from '@/utils/date';
 import { useMutation, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function ShoppingDayScreen() {
+export default function ShoppingListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const c = Colors[useColorScheme() ?? 'light'];
-  const params = useLocalSearchParams<{ date?: string }>();
-  const date = params.date ?? todayStr();
-  const today = todayStr();
+  const params = useLocalSearchParams<{ id?: string }>();
+  const listId = params.id ?? '';
 
-  const items = useQuery(api.shopping.listItemsByDay, { day: date });
-  const toggleItem = useMutation(api.shopping.toggleItem);
-  const deleteItem = useMutation(api.shopping.deleteItem);
-  const reuseDay = useMutation(api.shopping.reuseDay);
+  const items = useQuery(api.shopping.listItemsByList, listId ? { listId } : 'skip');
+  const reuseList = useMutation(api.shopping.reuseList);
+
+  const archivedAt = items && items.length > 0 ? items[0].archivedAt : undefined;
 
   const handleReuse = () => {
-    Alert.alert('Reutilizar lista', 'Copiar todos os itens desta lista para o dia de hoje?', [
+    Alert.alert('Reutilizar lista', 'Copiar os itens desta lista para a lista atual?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Copiar',
         onPress: async () => {
           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          await reuseDay({ fromDay: date, toDay: today });
+          await reuseList({ listId });
           router.replace('/shopping' as Href);
         },
       },
     ]);
   };
-
-  const handleLongPress = (id: Id<'shoppingItems'>, name: string) => {
-    Alert.alert('Remover item', `Remover "${name}"?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Remover', style: 'destructive', onPress: () => deleteItem({ id }) },
-    ]);
-  };
-
-  const isToday = date === today;
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top + 16 }]}>
@@ -55,7 +44,9 @@ export default function ShoppingDayScreen() {
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
           <Text style={[styles.back, { color: c.tint }]}>Voltar</Text>
         </TouchableOpacity>
-        <ThemedText type="title" style={styles.title}>{formatDayLabel(date)}</ThemedText>
+        <ThemedText type="title" style={styles.title}>
+          {archivedAt ? formatArchivedLabel(archivedAt) : 'Lista'}
+        </ThemedText>
       </View>
 
       {items === undefined ? (
@@ -66,7 +57,7 @@ export default function ShoppingDayScreen() {
       ) : items.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyIcon}>🛒</Text>
-          <ThemedText style={[styles.emptyText, { color: c.muted }]}>Sem itens neste dia</ThemedText>
+          <ThemedText style={[styles.emptyText, { color: c.muted }]}>Lista vazia</ThemedText>
         </View>
       ) : (
         <FlatList
@@ -77,8 +68,8 @@ export default function ShoppingDayScreen() {
               name={item.name}
               checked={item.checked}
               quantity={item.quantity}
-              onToggle={() => toggleItem({ id: item._id })}
-              onLongPress={() => handleLongPress(item._id, item.name)}
+              onToggle={() => {}}
+              onLongPress={() => {}}
             />
           )}
           contentContainerStyle={{ paddingTop: 12, paddingBottom: insets.bottom + 96 }}
@@ -86,7 +77,7 @@ export default function ShoppingDayScreen() {
         />
       )}
 
-      {!isToday && items && items.length > 0 && (
+      {items && items.length > 0 && (
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={handleReuse}
@@ -103,7 +94,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 24 },
   header: { marginBottom: 16 },
   back: { fontSize: 15, fontWeight: '600', marginBottom: 8 },
-  title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8, textTransform: 'capitalize' },
+  title: { fontSize: 26, fontWeight: '800', letterSpacing: -0.8, textTransform: 'capitalize' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
   emptyIcon: { fontSize: 48, marginBottom: 16 },
   emptyText: { fontSize: 15, textAlign: 'center' },

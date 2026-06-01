@@ -32,8 +32,10 @@ export default defineSchema({
     name: v.string(),
     checked: v.boolean(),
     quantity: v.optional(v.number()), // ausente = 1
-    day: v.optional(v.string()), // "YYYY-MM-DD" (local). Opcional p/ não exigir migração.
+    listId: v.optional(v.string()), // undefined = lista ativa; definido = lote no histórico
+    archivedAt: v.optional(v.number()), // quando foi enviado ao histórico
+    day: v.optional(v.string()), // legado (não usado)
     createdAt: v.number(),
-  }).index("by_day", ["day"]),
+  }).index("by_list", ["listId"]),
 });
 

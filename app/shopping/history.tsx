@@ -4,10 +4,9 @@ import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { api } from '@/convex/_generated/api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { formatDayLabel, todayStr } from '@/utils/date';
+import { formatArchivedLabel } from '@/utils/date';
 import { useQuery } from 'convex/react';
 import { useRouter, type Href } from 'expo-router';
-import { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -15,10 +14,8 @@ export default function ShoppingHistoryScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const c = Colors[useColorScheme() ?? 'light'];
-  const today = todayStr();
 
-  const days = useQuery(api.shopping.listDays);
-  const past = useMemo(() => (days ?? []).filter((d) => d.day !== today), [days, today]);
+  const lists = useQuery(api.shopping.listHistory);
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top + 16 }]}>
@@ -29,31 +26,31 @@ export default function ShoppingHistoryScreen() {
         <ThemedText type="title" style={styles.title}>Histórico</ThemedText>
       </View>
 
-      {days === undefined ? (
+      {lists === undefined ? (
         <View style={{ marginTop: 12 }}>
           <SkeletonCard />
           <SkeletonCard />
         </View>
-      ) : past.length === 0 ? (
+      ) : lists.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyIcon}>📅</Text>
           <ThemedText style={[styles.emptyTitle, { color: c.text }]}>Nada no histórico ainda</ThemedText>
           <ThemedText style={[styles.emptyText, { color: c.muted }]}>
-            As listas de dias anteriores aparecem aqui
+            Use &quot;Enviar para o histórico&quot; pra guardar uma lista aqui
           </ThemedText>
         </View>
       ) : (
         <FlatList
-          data={past}
-          keyExtractor={(d) => d.day}
+          data={lists}
+          keyExtractor={(l) => l.listId}
           renderItem={({ item }) => (
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => router.push({ pathname: '/shopping/day', params: { date: item.day } } as Href)}
+              onPress={() => router.push({ pathname: '/shopping/list', params: { id: item.listId } } as Href)}
               style={[styles.row, { backgroundColor: c.cardBackground }]}
             >
               <View style={{ flex: 1 }}>
-                <Text style={[styles.day, { color: c.text }]}>{formatDayLabel(item.day)}</Text>
+                <Text style={[styles.day, { color: c.text }]}>{formatArchivedLabel(item.archivedAt)}</Text>
                 <Text style={[styles.meta, { color: c.muted }]}>
                   {item.checked}/{item.total} comprados
                 </Text>

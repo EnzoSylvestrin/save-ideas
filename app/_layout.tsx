@@ -5,6 +5,7 @@ import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -55,6 +56,7 @@ export default function RootLayout() {
   }, [router]);
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaProvider>
       <ConvexProvider client={convex}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -65,7 +67,7 @@ export default function RootLayout() {
             <Stack.Screen name="wishlist/add" options={{ headerShown: false, presentation: 'modal' }} />
             <Stack.Screen name="shopping/index" options={{ headerShown: false, presentation: 'card' }} />
             <Stack.Screen name="shopping/history" options={{ headerShown: false, presentation: 'card' }} />
-            <Stack.Screen name="shopping/day" options={{ headerShown: false, presentation: 'card' }} />
+            <Stack.Screen name="shopping/list" options={{ headerShown: false, presentation: 'card' }} />
             <Stack.Screen name="project-detail" options={{ headerShown: false, presentation: 'card' }} />
             <Stack.Screen name="quick-record" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
             <Stack.Screen name="idea-detail" options={{ headerShown: false, presentation: 'card' }} />
@@ -74,5 +76,6 @@ export default function RootLayout() {
         </ThemeProvider>
       </ConvexProvider>
     </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
