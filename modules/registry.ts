@@ -1,5 +1,6 @@
 import type { HubModule } from './types';
 import { ideasModule } from './ideas/module';
+import { shoppingModule } from './shopping/module';
 import { wishlistModule } from './wishlist/module';
 
 /**
@@ -12,4 +13,4 @@ import { wishlistModule } from './wishlist/module';
  *  3. Crie o descritor em modules/<modulo>/module.ts
  *  4. Importe e adicione o descritor a este array
  */
-export const MODULES: HubModule[] = [ideasModule, wishlistModule];
+export const MODULES: HubModule[] = [ideasModule, wishlistModule, shoppingModule];

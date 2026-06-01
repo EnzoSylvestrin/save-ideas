@@ -1,0 +1,10 @@
+appId: com.evalla.saveideas
+name: Open Shopping from hub
+tags:
+  - smoke
+---
+- launchApp
+- tapOn: "Compras"
+- assertVisible: "Adicionar item…"
+- back
+- assertVisible: "Capturar"

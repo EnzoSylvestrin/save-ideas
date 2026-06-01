@@ -28,5 +28,10 @@ export default defineSchema({
     acquiredAt: v.optional(v.number()),
     createdAt: v.number(),
   }).index("by_acquired", ["acquired"]),
+  shoppingItems: defineTable({
+    name: v.string(),
+    checked: v.boolean(),
+    createdAt: v.number(),
+  }).index("by_checked", ["checked"]),
 });
 

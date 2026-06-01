@@ -1,0 +1,12 @@
+appId: com.evalla.saveideas
+name: Add shopping item and check it
+tags:
+  - smoke
+---
+- launchApp
+- tapOn: "Compras"
+- tapOn: "Adicionar item…"
+- inputText: "Arroz Maestro"
+- tapOn: "＋"
+- assertVisible: "Arroz Maestro"
+- tapOn: "Arroz Maestro"
