@@ -1,5 +1,6 @@
 import type { HubModule } from './types';
 import { ideasModule } from './ideas/module';
+import { wishlistModule } from './wishlist/module';
 
 /**
  * Única fonte da verdade dos módulos do hub.
@@ -11,4 +12,4 @@ import { ideasModule } from './ideas/module';
  *  3. Crie o descritor em modules/<modulo>/module.ts
  *  4. Importe e adicione o descritor a este array
  */
-export const MODULES: HubModule[] = [ideasModule];
+export const MODULES: HubModule[] = [ideasModule, wishlistModule];

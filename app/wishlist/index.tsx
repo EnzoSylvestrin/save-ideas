@@ -11,7 +11,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { formatBRL } from '@/utils/currency';
 import { useMutation, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
-import { useRouter, type Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActionSheetIOS, Alert, FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -47,7 +47,7 @@ export default function WishlistScreen() {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       await setAcquired({ id, acquired: !showAcquired });
     };
-    const onEdit = () => router.push({ pathname: '/wishlist/add', params: { id } } as unknown as Href);
+    const onEdit = () => router.push({ pathname: '/wishlist/add', params: { id } });
     const onDelete = () =>
       Alert.alert('Excluir desejo', 'Tem certeza? Esta ação não pode ser desfeita.', [
         { text: 'Cancelar', style: 'cancel' },
@@ -74,7 +74,7 @@ export default function WishlistScreen() {
         <ThemedText type="title" style={styles.title}>🛍️ Desejos</ThemedText>
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => router.push('/wishlist/add' as Href)}
+          onPress={() => router.push('/wishlist/add')}
           style={[styles.addBtn, { backgroundColor: '#ec4899' }]}
         >
           <Text style={styles.addPlus}>＋</Text>
@@ -122,7 +122,7 @@ export default function WishlistScreen() {
           renderItem={({ item }) => (
             <WishlistCard
               item={item}
-              onPress={() => router.push({ pathname: '/wishlist/add', params: { id: item._id } } as unknown as Href)}
+              onPress={() => router.push({ pathname: '/wishlist/add', params: { id: item._id } })}
               onLongPress={() => openActions(item._id)}
             />
           )}
@@ -154,7 +154,7 @@ export default function WishlistScreen() {
             },
             {
               label: 'Editar',
-              onPress: () => sheetItemId && router.push({ pathname: '/wishlist/add', params: { id: sheetItemId } } as unknown as Href),
+              onPress: () => sheetItemId && router.push({ pathname: '/wishlist/add', params: { id: sheetItemId } }),
             },
             {
               label: 'Excluir',
