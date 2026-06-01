@@ -50,6 +50,7 @@ export default function RootLayout() {
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="ideas/index" options={{ headerShown: false, presentation: 'card' }} />
             <Stack.Screen name="project-detail" options={{ headerShown: false, presentation: 'card' }} />
             <Stack.Screen name="quick-record" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
             <Stack.Screen name="idea-detail" options={{ headerShown: false, presentation: 'card' }} />
