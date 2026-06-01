@@ -13,7 +13,7 @@ export function ModuleTile({ module }: { module: HubModule }) {
       onPress={() => router.push(module.route as Href)}
     >
       <LinearGradient
-        colors={module.gradient as [string, string]}
+        colors={module.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.tile}
