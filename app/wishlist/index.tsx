@@ -86,7 +86,7 @@ export default function WishlistScreen() {
           <TouchableOpacity
             key={s.label}
             activeOpacity={0.8}
-            onPress={() => setShowAcquired(s.k)}
+            onPress={() => { setShowAcquired(s.k); setCategory(CATEGORY_ALL); }}
             style={[styles.segBtn, { backgroundColor: showAcquired === s.k ? '#ec4899' : c.cardBackground }]}
           >
             <Text style={[styles.segLabel, { color: showAcquired === s.k ? '#fff' : c.muted }]}>{s.label}</Text>
