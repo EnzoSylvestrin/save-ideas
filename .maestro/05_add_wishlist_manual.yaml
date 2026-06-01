@@ -1,0 +1,13 @@
+appId: com.evalla.saveideas
+name: Add wishlist item manually
+tags:
+  - smoke
+---
+- launchApp
+- tapOn: "Desejos"
+- tapOn: "＋"
+- assertVisible: "Novo desejo"
+- tapOn: "Nome do desejo"
+- inputText: "Mesa de teste Maestro"
+- tapOn: "Salvar"
+- assertVisible: "Mesa de teste Maestro"

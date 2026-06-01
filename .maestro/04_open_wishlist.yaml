@@ -1,0 +1,11 @@
+appId: com.evalla.saveideas
+name: Open Wishlist from hub
+tags:
+  - smoke
+---
+- launchApp
+- tapOn: "Desejos"
+- assertVisible: "Ativos"
+- assertVisible: "Conquistados"
+- back
+- assertVisible: "Capturar"
