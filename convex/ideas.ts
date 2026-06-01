@@ -148,3 +148,14 @@ export const processAudioIdea = action({
   },
 });
 
+export const getHubOverview = query({
+  handler: async (ctx) => {
+    const projects = await ctx.db.query("projects").collect();
+    const ideas = await ctx.db.query("ideas").collect();
+    return {
+      projectCount: projects.length,
+      ideaCount: ideas.length,
+    };
+  },
+});
+
