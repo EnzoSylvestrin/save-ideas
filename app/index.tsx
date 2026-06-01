@@ -19,7 +19,7 @@ export default function HubScreen() {
     <ThemedView style={[styles.container, { paddingTop: insets.top + 16 }]}>
       <HubHeader />
       <ScrollView
-        contentContainerStyle={styles.grid}
+        contentContainerStyle={[styles.grid, { paddingBottom: insets.bottom + 24 }]}
         showsVerticalScrollIndicator={false}
       >
         {MODULES.map((m) => (
@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingBottom: 24,
   },
   cell: { width: '48%', marginBottom: 16 },
   addTile: {
