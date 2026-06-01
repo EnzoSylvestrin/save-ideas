@@ -16,5 +16,17 @@ export default defineSchema({
     processedIdea: v.string(),
     createdAt: v.number(),
   }).index("by_project", ["projectId"]),
+  wishlistItems: defineTable({
+    title: v.string(),
+    link: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    price: v.optional(v.number()),
+    priority: v.union(v.literal("high"), v.literal("medium"), v.literal("low")),
+    category: v.optional(v.string()),
+    note: v.optional(v.string()),
+    acquired: v.boolean(),
+    acquiredAt: v.optional(v.number()),
+    createdAt: v.number(),
+  }).index("by_acquired", ["acquired"]),
 });
 
