@@ -64,6 +64,8 @@ export default function RootLayout() {
             <Stack.Screen name="wishlist/index" options={{ headerShown: false, presentation: 'card' }} />
             <Stack.Screen name="wishlist/add" options={{ headerShown: false, presentation: 'modal' }} />
             <Stack.Screen name="shopping/index" options={{ headerShown: false, presentation: 'card' }} />
+            <Stack.Screen name="shopping/history" options={{ headerShown: false, presentation: 'card' }} />
+            <Stack.Screen name="shopping/day" options={{ headerShown: false, presentation: 'card' }} />
             <Stack.Screen name="project-detail" options={{ headerShown: false, presentation: 'card' }} />
             <Stack.Screen name="quick-record" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
             <Stack.Screen name="idea-detail" options={{ headerShown: false, presentation: 'card' }} />

@@ -1,10 +1,11 @@
 import { api } from '@/convex/_generated/api';
+import { todayStr } from '@/utils/date';
 import { useQuery } from 'convex/react';
 import type { Href } from 'expo-router';
 import type { HubModule } from '../types';
 
 function useShoppingTileData() {
-  const stats = useQuery(api.shopping.getShoppingStats);
+  const stats = useQuery(api.shopping.getDayStats, { day: todayStr() });
   if (!stats) return {};
   return {
     count: stats.pendingCount,

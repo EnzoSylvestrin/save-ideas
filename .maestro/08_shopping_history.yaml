@@ -1,0 +1,14 @@
+appId: com.evalla.saveideas
+name: Shopping today and history navigation
+tags:
+  - smoke
+---
+- launchApp
+- tapOn: "Compras"
+- assertVisible: "Adicionar item…"
+- assertVisible: "Histórico"
+- takeScreenshot: shop_today
+- tapOn: "Histórico"
+- assertVisible: "Voltar"
+- back
+- assertVisible: "Adicionar item…"

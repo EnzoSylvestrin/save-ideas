@@ -31,7 +31,9 @@ export default defineSchema({
   shoppingItems: defineTable({
     name: v.string(),
     checked: v.boolean(),
+    quantity: v.optional(v.number()), // ausente = 1
+    day: v.optional(v.string()), // "YYYY-MM-DD" (local). Opcional p/ não exigir migração.
     createdAt: v.number(),
-  }).index("by_checked", ["checked"]),
+  }).index("by_day", ["day"]),
 });
 
