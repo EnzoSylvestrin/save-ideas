@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { MODULES } from '@/modules/registry';
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL || '';
 
@@ -23,19 +24,28 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    QuickActions.setItems([
-      {
-        id: 'quick-record',
-        title: 'Gravar Ideia',
-        subtitle: 'Iniciar uma nova gravação',
-        icon: Platform.OS === 'ios' ? 'symbol:mic.fill' : 'mic',
-        params: { href: '/quick-record' },
-      },
-    ]);
+    const captureModules = MODULES.filter((m) => m.capture);
+
+    try {
+      QuickActions.setItems(
+        captureModules.map((m) => ({
+          id: m.capture!.quickActionId,
+          title: m.capture!.label,
+          subtitle: m.capture!.subtitle,
+          icon: Platform.OS === 'ios'
+            ? m.capture!.quickActionIcon.ios
+            : m.capture!.quickActionIcon.android,
+          params: { moduleId: m.id },
+        }))
+      );
+    } catch (e) {
+      console.warn('Não foi possível registrar quick actions', e);
+    }
 
     const subscription = QuickActions.addListener((action) => {
-      if (action.id === 'quick-record') {
-        router.push('/quick-record');
+      const mod = MODULES.find((m) => m.capture?.quickActionId === action.id);
+      if (mod?.capture) {
+        mod.capture.onTrigger(router);
       }
     });
 
