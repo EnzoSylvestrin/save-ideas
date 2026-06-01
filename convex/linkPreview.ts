@@ -32,12 +32,9 @@ function parsePrice(html: string): number | undefined {
     "product:price:amount",
     "twitter:data1",
   ]);
-  const fromMeta = meta ? parseFloat(meta.replace(/[^0-9.,]/g, "").replace(",", ".")) : NaN;
-  if (!isNaN(fromMeta) && fromMeta > 0) return fromMeta;
-  const ld = /"price"\s*:\s*"?([0-9]+(?:[.,][0-9]+)?)"?/i.exec(html);
-  const fromLd = ld ? parseFloat(ld[1].replace(",", ".")) : NaN;
-  if (!isNaN(fromLd) && fromLd > 0) return fromLd;
-  return undefined;
+  if (!meta) return undefined;
+  const n = parseFloat(meta.replace(/[^0-9.,]/g, "").replace(",", "."));
+  return !isNaN(n) && n > 0 ? n : undefined;
 }
 
 export const getLinkPreview = action({
@@ -56,13 +53,14 @@ export const getLinkPreview = action({
       clearTimeout(timeout);
       if (!res.ok) return {};
       const html = await res.text();
+      const tagTitle = /<title[^>]*>([^<]+)<\/title>/i.exec(html)?.[1];
       const title =
         metaContent(html, ["og:title", "twitter:title"]) ??
-        /<title[^>]*>([^<]+)<\/title>/i.exec(html)?.[1];
+        (tagTitle ? decodeEntities(tagTitle) : undefined);
       const imageUrl = metaContent(html, ["og:image", "twitter:image"]);
       const price = parsePrice(html);
       return {
-        title: title ? decodeEntities(title).trim() : undefined,
+        title: title ? title.trim() : undefined,
         imageUrl,
         price,
       };
