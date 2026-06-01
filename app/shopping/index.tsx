@@ -38,6 +38,12 @@ export default function ShoppingScreen() {
     return { total: list.length, checked: list.filter((i) => i.checked).length };
   }, [items]);
 
+  // Salvos filtrados pelo que está sendo digitado (vazio = mostra todos).
+  const filteredSaved = useMemo(() => {
+    const q = text.trim().toLowerCase();
+    return (saved ?? []).filter((n) => n.toLowerCase().includes(q));
+  }, [saved, text]);
+
   const handleAdd = async () => {
     const n = text.trim();
     if (!n) return;
@@ -47,6 +53,7 @@ export default function ShoppingScreen() {
 
   const handleAddSaved = async (name: string) => {
     await Haptics.selectionAsync();
+    setText('');
     await addItem({ name });
   };
 
@@ -142,11 +149,11 @@ export default function ShoppingScreen() {
         </TouchableOpacity>
       </View>
 
-      {saved && saved.length > 0 && (
+      {filteredSaved.length > 0 && (
         <View style={styles.savedWrap}>
           <Text style={[styles.savedLabel, { color: c.muted }]}>Salvos · toque pra adicionar</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.savedRow}>
-            {saved.map((name) => (
+            {filteredSaved.map((name) => (
               <TouchableOpacity
                 key={name}
                 activeOpacity={0.7}
