@@ -79,11 +79,14 @@ export function ShoppingRow({
   return (
     <Swipeable
       renderRightActions={() => (
-        <TouchableOpacity activeOpacity={0.8} onPress={onDelete} style={styles.deleteAction}>
+        <View style={styles.deleteFull}>
           <Text style={styles.deleteText}>Remover</Text>
-        </TouchableOpacity>
+        </View>
       )}
+      onSwipeableOpen={() => onDelete?.()}
+      rightThreshold={140}
       overshootRight={false}
+      friction={2}
     >
       {content}
     </Swipeable>
@@ -101,6 +104,6 @@ const styles = StyleSheet.create({
   stepSign: { fontSize: 18, fontWeight: '700' },
   qty: { minWidth: 22, textAlign: 'center', fontSize: 15, fontWeight: '800' },
   qtyStatic: { fontSize: 14, fontWeight: '700', marginLeft: 10 },
-  deleteAction: { backgroundColor: '#ef4444', justifyContent: 'center', alignItems: 'center', width: 96, borderRadius: 14, marginBottom: 10 },
+  deleteFull: { flex: 1, backgroundColor: '#ef4444', justifyContent: 'center', alignItems: 'flex-end', paddingRight: 24, borderRadius: 14, marginBottom: 10 },
   deleteText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 });
