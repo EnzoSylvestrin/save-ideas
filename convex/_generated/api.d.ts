@@ -9,6 +9,7 @@
  */
 
 import type * as ideas from "../ideas.js";
+import type * as linkPreview from "../linkPreview.js";
 import type * as projects from "../projects.js";
 import type * as wishlist from "../wishlist.js";
 
@@ -20,6 +21,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   ideas: typeof ideas;
+  linkPreview: typeof linkPreview;
   projects: typeof projects;
   wishlist: typeof wishlist;
 }>;
