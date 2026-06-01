@@ -6,6 +6,7 @@ import { Colors } from '@/constants/theme';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { parseBRLNumber } from '@/utils/currency';
 import { useAction, useMutation, useQuery } from 'convex/react';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -74,12 +75,12 @@ export default function WishlistAddScreen() {
       Alert.alert('Erro', 'Dá um título pro desejo');
       return;
     }
-    const parsedPrice = price.trim() ? parseFloat(price.replace(',', '.')) : undefined;
+    const parsedPrice = price.trim() ? parseBRLNumber(price) : undefined;
     const payload = {
       title: title.trim(),
       link: link.trim() || undefined,
       imageUrl,
-      price: parsedPrice !== undefined && !isNaN(parsedPrice) ? parsedPrice : undefined,
+      price: parsedPrice,
       priority,
       category: category.trim() || undefined,
       note: note.trim() || undefined,

@@ -33,7 +33,10 @@ function parsePrice(html: string): number | undefined {
     "twitter:data1",
   ]);
   if (!meta) return undefined;
-  const n = parseFloat(meta.replace(/[^0-9.,]/g, "").replace(",", "."));
+  let s = meta.replace(/[^0-9.,]/g, "");
+  // Formato BR: "1.299,90" → ponto = milhar, vírgula = decimal.
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  const n = parseFloat(s);
   return !isNaN(n) && n > 0 ? n : undefined;
 }
 
