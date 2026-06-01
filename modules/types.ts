@@ -33,7 +33,11 @@ export type HubModule = {
   gradient: readonly [string, string];
   /** Rota da tela do módulo (Expo Router), ex: '/ideas' */
   route: string;
-  /** Hook opcional para preview vivo no bloco (usa Convex) */
+  /**
+   * Hook opcional para preview vivo no bloco (usa Convex).
+   * DEVE seguir as Regras dos Hooks: a home renderiza um componente de tile
+   * por módulo e chama este hook de forma incondicional no topo do render.
+   */
   useTileData?: () => ModuleTileData;
   /** Se presente, o módulo entra na folha "＋" e nas quick actions */
   capture?: ModuleCapture;
