@@ -4,7 +4,7 @@ const easProjectId = process.env.EAS_PROJECT_ID || '';
 
 export default {
   expo: {
-    name: 'Save ideas',
+    name: 'myHub',
     slug: 'save-ideas',
     version: '1.0.0',
     orientation: 'portrait',
