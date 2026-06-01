@@ -3,7 +3,12 @@ import { ideasModule } from './ideas/module';
 
 /**
  * Única fonte da verdade dos módulos do hub.
- * Adicionar um módulo = importar o descritor e colocá-lo neste array.
- * Home, folha de captura e quick actions se montam a partir daqui.
+ * Home, folha de captura e quick actions se montam a partir deste array.
+ *
+ * Para adicionar um módulo:
+ *  1. Crie a tela em app/<modulo>/index.tsx
+ *  2. Registre a rota em app/_layout.tsx (<Stack.Screen name="<modulo>/index" />)
+ *  3. Crie o descritor em modules/<modulo>/module.ts
+ *  4. Importe e adicione o descritor a este array
  */
 export const MODULES: HubModule[] = [ideasModule];

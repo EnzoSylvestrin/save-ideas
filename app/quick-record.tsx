@@ -8,7 +8,7 @@ import { Id } from '@/convex/_generated/dataModel';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { getLastProjectId, setLastProjectId } from '@/utils/storage';
 import { useAction, useQuery } from 'convex/react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,7 +37,7 @@ export default function QuickRecordScreen() {
       // Só mostrar erro se realmente não houver projetos após carregar
       if (projects.length === 0) {
         Alert.alert('Atenção', 'Crie um projeto primeiro para gravar ideias', [
-          { text: 'OK', onPress: () => router.replace('/') },
+          { text: 'OK', onPress: () => router.replace('/ideas' as Href) },
         ]);
         return;
       }
