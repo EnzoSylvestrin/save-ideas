@@ -68,11 +68,12 @@ export const updateWishlistItem = mutation({
     note: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { id, ...rest } = args;
-    const patch: Record<string, unknown> = {};
-    for (const [k, val] of Object.entries(rest)) {
-      if (val !== undefined) patch[k] = val;
-    }
+    const { id, title, priority, link, imageUrl, price, category, note } = args;
+    // Edição completa: o form envia todos os campos editáveis. Campos opcionais
+    // recebem o valor cru (undefined limpa o campo); obrigatórios só se vierem.
+    const patch: Record<string, unknown> = { link, imageUrl, price, category, note };
+    if (title !== undefined) patch.title = title;
+    if (priority !== undefined) patch.priority = priority;
     await ctx.db.patch(id, patch);
   },
 });
