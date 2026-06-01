@@ -1,0 +1,11 @@
+appId: com.evalla.saveideas
+name: Open Ideas module from hub
+tags:
+  - smoke
+---
+# Caminho feliz: tocar no bloco Ideias abre a lista de projetos (rota /ideas).
+- launchApp
+- tapOn: "Ideias"
+- assertVisible: "Projetos"
+- back
+- assertVisible: "Capturar"

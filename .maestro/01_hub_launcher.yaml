@@ -1,0 +1,10 @@
+appId: com.evalla.saveideas
+name: Hub launcher renders
+tags:
+  - smoke
+---
+# Caminho feliz: o app abre no hub launcher mostrando o módulo Ideias e a captura.
+- launchApp:
+    clearState: true
+- assertVisible: "Ideias"
+- assertVisible: "Capturar"

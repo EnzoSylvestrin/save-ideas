@@ -1,0 +1,9 @@
+appId: com.evalla.saveideas
+name: Capture sheet opens
+tags:
+  - smoke
+---
+# Caminho feliz: o bloco "+ Capturar" abre a folha de captura com a ação de Ideia.
+- launchApp
+- tapOn: "Capturar"
+- assertVisible: "Ideia \\(voz\\)"
